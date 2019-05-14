@@ -3,8 +3,10 @@ extern crate web3;
 extern crate tokio_core;
 
 use web3::futures::Future;
-use signer::{PrivKey, KeyPair, EthTransaction, H256, U256, Bytes};
+use signer::{PrivKey, KeyPair, EthTransaction, H256, Bytes};
 use std::str::FromStr;
+
+const KEY:&str = "5f0258a4778057a8a7d97809bd209055b2fbafa654ce7d31ec7191066b9225e6";
 
 fn main() {
     let mut event_loop = tokio_core::reactor::Core::new().unwrap();
@@ -16,10 +18,9 @@ fn main() {
         ).unwrap(),
     ).eth();
 
-    let key_pair = PrivKey::from_str("5f0258a4778057a8a7d97809bd209055b2fbafa654ce7d31ec7191066b9225e6").map(|privKey| {
-        KeyPair::from_privkey(privKey)
+    let key_pair = PrivKey::from_str(KEY).map(|priv_key| {
+        KeyPair::from_privkey(priv_key)
     }).unwrap();
-    let height: u64 = event_loop.run(eth.block_number()).unwrap().into();
     let nonce = event_loop.run(eth.transaction_count(key_pair.address(), None)).unwrap();
     let transaction = EthTransaction {
                                     nonce: nonce.into(),

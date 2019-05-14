@@ -6,6 +6,8 @@ use web3::futures::Future;
 use std::str::FromStr;
 use signer::{PrivKey, AbosTransaction, H256, U256, Bytes};
 
+const KEY:&str = "5f0258a4778057a8a7d97809bd209055b2fbafa654ce7d31ec7191066b9225e6";
+
 fn main() {
     let mut event_loop = tokio_core::reactor::Core::new().unwrap();
     let abos = web3::Web3::new(
@@ -21,7 +23,7 @@ fn main() {
     println!("metadata: {:?}", meta_data);
     let height: u64 = event_loop.run(abos.block_number()).unwrap().into();
     println!("height: {}", height);
-    let priv_key = PrivKey::from_str("5f0258a4778057a8a7d97809bd209055b2fbafa654ce7d31ec7191066b9225e6").unwrap();
+    let priv_key = PrivKey::from_str(KEY).unwrap();
     let tx = AbosTransaction {
             to: None,
             nonce: "123".to_owned(),
