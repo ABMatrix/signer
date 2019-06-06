@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-#![feature(try_from)]
+
 
 mod keypair;
 mod transaction;
