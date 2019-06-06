@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/laddernetwork/signer.svg?branch=develop)](https://travis-ci.com/laddernetwork/signer)
+
 A simple signer for ethereum and Abos.
 
 # Feature
