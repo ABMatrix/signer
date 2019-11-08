@@ -21,7 +21,7 @@ fn main() {
     // get meta data.
     let meta_data = event_loop.run(abos.meta_data(None)).unwrap();
     println!("metadata: {:?}", meta_data);
-    let height: u64 = event_loop.run(abos.block_number()).unwrap().into();
+    let height: u64 = event_loop.run(abos.block_number()).unwrap().low_u64();
     println!("height: {}", height);
     let priv_key = PrivKey::from_str(KEY).unwrap();
     let tx = AbosTransaction {

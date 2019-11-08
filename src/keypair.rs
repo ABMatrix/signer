@@ -117,7 +117,7 @@ mod tests {
             H256::from_str("de0a3ae1674c881e96659ba568d06c6807876c41d13f63444111d57d4754a866")
                 .unwrap(),
         );
-        let keyring = Keyring::from(&privkey);
+        let keyring = Keyring::from(&privkey.0);
         let pair = KeyPair::from_privkey(keyring.to_key());
         assert_eq!(pair.address(), Address::from_str("59dc5d8803b482ddbf361ebaccbacc413925ab28").unwrap());
 
