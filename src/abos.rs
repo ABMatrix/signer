@@ -3,7 +3,7 @@ use rustc_hex::ToHex;
 use protobuf::{Message as OtherMessage};
 use crate::keypair::PrivKey;
 use crate::hasher::{Hasher, Hash};
-use crate::types::{H256, U256, H160};
+use crate::types::{H256, U256, H160, ToVec};
 use crate::transaction::{Transaction, UnverifiedTransaction, Crypto};
 use super::sign;
 use crate::eth::Eth;
@@ -43,15 +43,15 @@ impl From<&AbosTransaction> for Transaction {
         tx.set_nonce(trans.nonce);
         tx.set_valid_until_block(trans.valid_until_block);
         tx.set_quota(trans.quota);
-        tx.set_value(H256::from(U256::from(trans.value)).to_vec());
+        tx.set_value(trans.value.to_vec());
         match trans.version {
             0 => {
-                tx.set_to(trans.to.map_or(String::new(), |t| t.to_hex()));
+                tx.set_to(trans.to.map_or(String::new(), |t| t.0.to_hex()));
                 tx.set_chain_id(trans.chain_id.low_u32());
             },
             _ => {
-                tx.set_to_v1(trans.to.map_or(vec![], |t| t.to_vec()));
-                tx.set_chain_id_v1(H256::from(trans.chain_id).to_vec());
+                tx.set_to_v1(trans.to.map_or(vec![], |t| t.0.to_vec()));
+                tx.set_chain_id_v1(trans.chain_id.to_vec());
             }
         }
         tx.set_version(trans.version);
