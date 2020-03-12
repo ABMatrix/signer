@@ -1,4 +1,4 @@
-use secp256k1::{Message, SecretKey, sign};
+use secp256k1::{Message, SecretKey};
 use rustc_hex::ToHex;
 use protobuf::{Message as OtherMessage};
 use crate::keypair::PrivKey;
@@ -6,6 +6,7 @@ use crate::hasher::{Hasher, Hash};
 use crate::types::{U256, H160, ToVec};
 use crate::transaction::{Transaction, UnverifiedTransaction, Crypto};
 use crate::eth::Eth;
+use super::sign_compose;
 
 /// Description of a Transaction for abos.
 #[derive(Clone)]
@@ -74,11 +75,11 @@ impl Abos {
         // convert to protobuf transaction, to bytes, use keccak hash.
         let tx = Transaction::from(raw);
         let message = Message::parse_slice(&tx.protobuf_hash()).unwrap();
-        let (signature, _) = sign(&message, &sec);
+        let signature = sign_compose(&message, &sec);
 
         let mut unverified_tx = UnverifiedTransaction::new();
         unverified_tx.set_transaction(tx);
-        unverified_tx.set_signature(signature.serialize().to_vec());
+        unverified_tx.set_signature(signature.to_vec());
         unverified_tx.set_crypto(Crypto::DEFAULT);
 
         unverified_tx.write_to_bytes().unwrap()

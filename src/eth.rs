@@ -1,8 +1,9 @@
 use rlp::RlpStream;
-use secp256k1::{Message, SecretKey, sign};
+use secp256k1::{Message, SecretKey};
 use crate::keypair::PrivKey;
 use crate::hasher::{Hasher, Hash};
 use crate::types::{U256, H160};
+use super::sign_compose;
 
 /// Description of a Transaction for ethereum.
 #[derive(Debug, Default, Clone)]
@@ -57,8 +58,8 @@ impl Eth {
                 .into_bytes();
         message_data.append(&mut message.clone());
         let message = Message::parse_slice(&message_data.hash()).unwrap();
-        let (sgn, _) = sign(&message,&secret_key);
-        sgn.serialize().to_vec()
+        let sgn = sign_compose(&message, &secret_key);
+        sgn.to_vec()
     }
 
     /// 
@@ -66,8 +67,7 @@ impl Eth {
         // 
         let secret_key = SecretKey::parse_slice(&priv_key.0).unwrap();
         let message = Message::parse_slice(&raw.rlp_hash()).unwrap();
-        let (sgn, _) = sign(&message, &secret_key);
-        let mut sgn = sgn.serialize();
+        let mut sgn = sign_compose(&message, &secret_key);
         // ethereum style
         sgn[64] += 27;
 
