@@ -3,8 +3,6 @@ use secp256k1::{SecretKey, PublicKey};
 use std::fmt;
 use crate::types::{H256, H512, Address};
 use crate::hasher::Hasher;
-use super::SECP256K1;
-
 
 pub type PrivKey = H256;
 pub type PubKey = H512;
@@ -55,11 +53,10 @@ impl fmt::Display for KeyPair {
 impl KeyPair {
     /// Create a pair from private key
     pub fn from_privkey(privkey: PrivKey) -> Self {
-        let secp = &SECP256K1;
-        let secret_key = SecretKey::from_slice(&privkey.0).expect("32 bytes, within curve order");
-        let public_key = PublicKey::from_secret_key(secp, &secret_key);
+        let secret_key = SecretKey::parse_slice(&privkey.0).expect("32 bytes, within curve order");
+        let public_key = PublicKey::from_secret_key(&secret_key);
 
-        let serialized = public_key.serialize_uncompressed();
+        let serialized = public_key.serialize();
         let mut pubkey = PubKey::default();
         pubkey.0.copy_from_slice(&serialized[1..65]);
 

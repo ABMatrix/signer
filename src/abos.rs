@@ -1,11 +1,10 @@
-use secp256k1::{Message, SecretKey};
+use secp256k1::{Message, SecretKey, sign};
 use rustc_hex::ToHex;
 use protobuf::{Message as OtherMessage};
 use crate::keypair::PrivKey;
 use crate::hasher::{Hasher, Hash};
-use crate::types::{H256, U256, H160, ToVec};
+use crate::types::{U256, H160, ToVec};
 use crate::transaction::{Transaction, UnverifiedTransaction, Crypto};
-use super::sign;
 use crate::eth::Eth;
 
 /// Description of a Transaction for abos.
@@ -71,15 +70,15 @@ impl Abos {
 
     /// 
     pub fn sign_transaction(priv_key: &PrivKey, raw: &AbosTransaction) -> Vec<u8> {
-        let sec: &SecretKey = unsafe { std::mem::transmute(priv_key) };
+        let sec = SecretKey::parse_slice(&priv_key.0).unwrap();
         // convert to protobuf transaction, to bytes, use keccak hash.
         let tx = Transaction::from(raw);
-        let message = Message::from_slice(&tx.protobuf_hash()).unwrap();
-        let signature = sign(sec, &message);
+        let message = Message::parse_slice(&tx.protobuf_hash()).unwrap();
+        let (signature, _) = sign(&message, &sec);
 
         let mut unverified_tx = UnverifiedTransaction::new();
         unverified_tx.set_transaction(tx);
-        unverified_tx.set_signature(signature.to_vec());
+        unverified_tx.set_signature(signature.serialize().to_vec());
         unverified_tx.set_crypto(Crypto::DEFAULT);
 
         unverified_tx.write_to_bytes().unwrap()

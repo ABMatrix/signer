@@ -1,9 +1,8 @@
 use rlp::RlpStream;
-use secp256k1::{Message, SecretKey};
+use secp256k1::{Message, SecretKey, sign};
 use crate::keypair::PrivKey;
 use crate::hasher::{Hasher, Hash};
 use crate::types::{U256, H160};
-use super::sign;
 
 /// Description of a Transaction for ethereum.
 #[derive(Debug, Default, Clone)]
@@ -27,7 +26,7 @@ impl EthTransaction {
         let mut rlp = RlpStream::new();
         rlp.begin_unbounded_list();
         self.rlp_encode(&mut rlp);
-        rlp.complete_unbounded_list();
+        rlp.finalize_unbounded_list();
         rlp.out().hash()
     }
 
@@ -52,22 +51,23 @@ impl Eth {
 
     /// 
     pub fn sign_message(priv_key: &PrivKey, message:& Vec<u8>) -> Vec<u8> {
-        let secret_key: &SecretKey = unsafe { std::mem::transmute(priv_key) };
+        let secret_key = SecretKey::parse_slice(&priv_key.0).unwrap();
         let mut message_data =
             format!("\x19Ethereum Signed Message:\n{}" ,message.len())
                 .into_bytes();
         message_data.append(&mut message.clone());
-        let message = Message::from_slice(&message_data.hash()).unwrap();
-        let sgn = sign(secret_key, &message);
-        sgn.to_vec()
+        let message = Message::parse_slice(&message_data.hash()).unwrap();
+        let (sgn, _) = sign(&message,&secret_key);
+        sgn.serialize().to_vec()
     }
 
     /// 
     pub fn sign_transaction(priv_key: &PrivKey, raw: &EthTransaction) -> Vec<u8> {
         // 
-        let secret_key: &SecretKey = unsafe { std::mem::transmute(priv_key) };
-        let message = Message::from_slice(&raw.rlp_hash()).unwrap();
-        let mut sgn = sign(secret_key, &message);
+        let secret_key = SecretKey::parse_slice(&priv_key.0).unwrap();
+        let message = Message::parse_slice(&raw.rlp_hash()).unwrap();
+        let (sgn, _) = sign(&message, &secret_key);
+        let mut sgn = sgn.serialize();
         // ethereum style
         sgn[64] += 27;
 
@@ -77,7 +77,7 @@ impl Eth {
         tx.append(&sgn[64]);
         tx.append(&&sgn[0..32]);
         tx.append(&&sgn[32..64]);
-        tx.complete_unbounded_list();
+        tx.finalize_unbounded_list();
         tx.out()
     }
 }
