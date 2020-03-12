@@ -29,7 +29,7 @@ impl Keyring {
     }
 
     pub fn to_hex(&self) -> String {
-        self.to_key().to_hex()
+        self.to_key().as_ref().to_hex()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -48,7 +48,7 @@ impl fmt::Display for KeyPair {
    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
        writeln!(f, "PrivKey:  {}", self.privkey.0.to_hex())?;
        writeln!(f, "PubKey:  {}", self.pubkey.0.to_hex())?;
-       write!(f, "Address:  {}", self.address().to_hex())
+       write!(f, "Address:  {}", self.address().0.to_hex())
    }
 }
 
@@ -56,7 +56,7 @@ impl KeyPair {
     /// Create a pair from private key
     pub fn from_privkey(privkey: PrivKey) -> Self {
         let secp = &SECP256K1;
-        let secret_key = SecretKey::from_slice(&privkey).expect("32 bytes, within curve order");
+        let secret_key = SecretKey::from_slice(&privkey.0).expect("32 bytes, within curve order");
         let public_key = PublicKey::from_secret_key(secp, &secret_key);
 
         let serialized = public_key.serialize_uncompressed();
@@ -117,7 +117,7 @@ mod tests {
             H256::from_str("de0a3ae1674c881e96659ba568d06c6807876c41d13f63444111d57d4754a866")
                 .unwrap(),
         );
-        let keyring = Keyring::from(&privkey);
+        let keyring = Keyring::from(&privkey.0);
         let pair = KeyPair::from_privkey(keyring.to_key());
         assert_eq!(pair.address(), Address::from_str("59dc5d8803b482ddbf361ebaccbacc413925ab28").unwrap());
 
